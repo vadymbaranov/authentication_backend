@@ -3,15 +3,13 @@ import { hashPassword } from './passwordService.js';
 import { generateAccessToken } from '../services/jwtService.js';
 import { Subordinate } from '../models/Subordinates.js';
 
-export async function registerUser(body) {
-  const {
-    firstName,
-    lastName,
-    email,
-    role,
-    password,
-  } = body;
-
+export async function registerUser({
+  firstName,
+  lastName,
+  email,
+  role = 'user',
+  password,
+}) {
   const existingUser = await getByEmail(email);
 
   if (existingUser !== null) {
@@ -34,7 +32,7 @@ export async function registerUser(body) {
 
     if (newUser.role === 'admin') {
       const users = await getAllUsers();
-      const maxID = Math.max(users.map(user => user.adminId));
+      const maxID = Math.max(...users.map(user => user.adminId));
 
       const adminId = maxID > 0 ? maxID + 1 : 1;
 
@@ -43,7 +41,8 @@ export async function registerUser(body) {
 
     if (newUser.role === 'supervisor') {
       const users = await getAllUsers();
-      const maxID = Math.max(users.map(user => user.supervisorId));
+      const maxID = Math.max(...users.map(user => user.supervisorId));
+      console.log(maxID);
 
       const supervisorId = maxID > 0 ? maxID + 1 : 1;
 
@@ -56,20 +55,20 @@ export async function registerUser(body) {
   }
 }
 
-export async function getAllUsers() {
-  return await User.findAll({
+export function getAllUsers() {
+  return  User.findAll({
     order: ['id'],
   });
 }
 
 export function getAllSubordinates(supervisorId) {
   return Subordinate.findAll({
-    where: {supervisorId},
+    where: { supervisorId },
   });
 }
 
-export async function getByEmail(email) {
-  return await User.findOne({
+export function getByEmail(email) {
+  return User.findOne({
     where: { email },
   });
 }
