@@ -2,7 +2,7 @@ import { sequelize } from '../utils/db.js';
 import { DataTypes } from 'sequelize';
 import { Subordinate } from './Subordinates.js';
 
-export const User = sequelize.define('user', {
+export const User = sequelize.define('users', {
   id: {
     field: 'user_id',
     type: DataTypes.INTEGER,

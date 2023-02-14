@@ -14,7 +14,7 @@ export async function registerUser(body) {
 
   const existingUser = await getByEmail(email);
 
-  if (email === existingUser.email) {
+  if (existingUser !== null) {
     return 'User with this email already exists';
   }
 
@@ -23,17 +23,32 @@ export async function registerUser(body) {
     const salt = hashedPassword.salt;
     const hash = hashedPassword.hash;
 
-    const accessToken = generateAccessToken(user);
-
     const newUser = {
       firstName,
       lastName,
       email,
       role,
       password: hash,
-      token: accessToken,
       salt,
     };
+
+    if (newUser.role === 'admin') {
+      const users = await getAllUsers();
+      const maxID = Math.max(users.map(user => user.adminId));
+
+      const adminId = maxID > 0 ? maxID + 1 : 1;
+
+      newUser.adminId = adminId;
+    }
+
+    if (newUser.role === 'supervisor') {
+      const users = await getAllUsers();
+      const maxID = Math.max(users.map(user => user.supervisorId));
+
+      const supervisorId = maxID > 0 ? maxID + 1 : 1;
+
+      newUser.supervisorId = supervisorId;
+    }
 
     await User.create(newUser)
 
@@ -41,8 +56,8 @@ export async function registerUser(body) {
   }
 }
 
-export function getAllUsers() {
-  return User.findAll({
+export async function getAllUsers() {
+  return await User.findAll({
     order: ['id'],
   });
 }
@@ -53,8 +68,8 @@ export function getAllSubordinates(supervisorId) {
   });
 }
 
-export function getByEmail(email) {
-  return User.findOne({
+export async function getByEmail(email) {
+  return await User.findOne({
     where: { email },
   });
 }

@@ -13,6 +13,7 @@ export async function register(req, res, next) {
 export async function login(req, res, next) {
   const { email, password } = req.body;
   const user = await getByEmail(email);
+  const { id } = user;
 
   if (user === null) {
     return 'No user found';
@@ -22,6 +23,11 @@ export async function login(req, res, next) {
 
   if (isValid) {
     const accessToken = generateAccessToken(user);
+
+    await User.update(
+      {token: { accessToken }},
+      {where: { id }},
+    )
 
     res.sendStatus(200);
     res.send({
